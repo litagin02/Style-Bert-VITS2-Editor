@@ -8,7 +8,9 @@ export async function fetchApi<T>(
 
   const res = await fetch(fullUrl, { headers: { 'Content-Type': 'application/json' }, ...options });
   if (!res.ok) {
-    throw new Error(`Network response was not ok (${res.status})`);
+    const error = await res.json();
+    console.error("Error code: ", res.status, "Error message: ", error);
+    throw new Error(error);
   }
 
   switch (responseType) {

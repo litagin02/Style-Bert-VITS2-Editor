@@ -1,25 +1,30 @@
 'use client';
 
 import {
+  Paper,
+  Stack,
   ToggleButton,
   ToggleButtonGroup,
-  Stack,
   Typography,
-  Paper,
 } from '@mui/material';
 
-import type { MoraTone } from './TTSContainer';
+export interface MoraTone {
+  mora: string; // katakana
+  tone: 0 | 1; // 0: low, 1: high
+}
 
 interface MoraToneToggleProps {
   moraTone: MoraTone;
   onChange: (tone: 0 | 1) => void;
   visible?: boolean;
+  disabled?: boolean;
 }
 
 function MoraToneToggle({
   moraTone: { mora, tone },
   onChange,
   visible = true,
+  disabled = false,
 }: MoraToneToggleProps) {
   const handleChange = (_: React.MouseEvent<HTMLElement>, newTone: 0 | 1) => {
     if (newTone !== null) {
@@ -40,6 +45,7 @@ function MoraToneToggle({
         orientation='vertical'
         value={tone}
         onChange={handleChange}
+        disabled={disabled}
       >
         <ToggleButton value={1}>高</ToggleButton>
         <ToggleButton value={0}>低</ToggleButton>
@@ -50,12 +56,16 @@ function MoraToneToggle({
 
 interface AccentEditorProps {
   moraToneList: MoraTone[];
-  setMoraToneList: (moraToneList: MoraTone[]) => void;
+  setMoraToneList?: (moraToneList: MoraTone[]) => void;
+  onChange?: (tone: 0 | 1, index: number) => void;
+  disabled?: boolean;
 }
 
 export default function AccentEditor({
   moraToneList,
   setMoraToneList,
+  onChange,
+  disabled = false,
 }: AccentEditorProps) {
   // ダミーのデータを定義
   const dummyMoraToneList: MoraTone[] = [{ mora: 'ア', tone: 0 }];
@@ -65,6 +75,13 @@ export default function AccentEditor({
     moraToneList && moraToneList.length > 0 ? moraToneList : dummyMoraToneList;
 
   const handleChange = (tone: 0 | 1, index: number) => {
+    if (onChange) {
+      onChange(tone, index);
+      return;
+    }
+    if (!setMoraToneList) {
+      return;
+    }
     const newKataToneList = [...moraToneList];
     newKataToneList[index] = { ...newKataToneList[index], tone };
     setMoraToneList(newKataToneList);
@@ -82,6 +99,7 @@ export default function AccentEditor({
             moraTone={moraTone}
             onChange={(tone) => handleChange(tone, index)}
             visible={moraToneList && moraToneList.length > 0}
+            disabled={disabled}
           />
         ))}
       </Stack>

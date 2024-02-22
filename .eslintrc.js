@@ -8,45 +8,18 @@ module.exports = {
     'plugin:import/recommended',
     'prettier',
   ],
-  plugins: ['unused-imports'],
+  plugins: ['simple-import-sort', "import"],
   rules: {
     'react/react-in-jsx-scope': 'off',
-    'import/order': [
-      'error',
-      {
-        groups: [
-          'builtin',
-          'external',
-          'parent',
-          'sibling',
-          'index',
-          'object',
-          'type',
-        ],
-        pathGroups: [
-          {
-            pattern: '{react,react-dom/**,react-router-dom}',
-            group: 'builtin',
-            position: 'before',
-          },
-          {
-            pattern: '@src/**',
-            group: 'parent',
-            position: 'before',
-          },
-        ],
-        pathGroupsExcludedImportTypes: ['builtin'],
-        alphabetize: {
-          order: 'asc',
-        },
-        'newlines-between': 'always',
-      },
-    ],
-    '@typescript-eslint/consistent-type-imports': [
-      'error',
-      { prefer: 'type-imports' },
-    ],
-    '@typescript-eslint/no-unused-vars': 'off',
-    'unused-imports/no-unused-imports': 'warn',
+    'react/jsx-uses-react': 'off',
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
+    'import/first': 'error',
+    'import/newline-after-import': 'error',
+    'import/no-duplicates': 'error',
+  },
+  parserOptions: {
+    sourceType: 'module',
+    ecmaVersion: 'latest',
   },
 };
