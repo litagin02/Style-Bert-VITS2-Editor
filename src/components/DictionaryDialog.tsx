@@ -134,7 +134,7 @@ export default function DictionaryDialog({
         priority,
       }),
     }).catch((e) => {
-      openDialog(`登録に失敗しました: ${e.message}`, 'error');
+      openDialog(`登録に失敗しました: ${e}`);
       return null;
     });
     if (!res) return;

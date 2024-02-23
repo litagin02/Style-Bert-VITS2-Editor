@@ -116,6 +116,8 @@ export default function EditorContainer() {
   const { height } = useWindowSize();
 
   useEffect(() => {
+    // 初期のモデル情報取得
+    // FIXME: 無限ループへの対策
     setOpenBackdrop(true);
 
     const fetchData = () => {
@@ -134,6 +136,7 @@ export default function EditorContainer() {
         })
         .catch((e) => {
           // openDialog(`モデル情報の取得に失敗しました。\n${e}`);
+          // FIXME: openDialogを入れると依存配列が変わるため、fetchApiが再実行されてしまう
           console.error(e);
           setTimeout(fetchData, 2000); // 2秒後に再試行
         });
@@ -215,7 +218,7 @@ export default function EditorContainer() {
       })
       .catch((e) => {
         console.error(e);
-        openPopup(`音声合成に失敗しました。\n${e.message}`);
+        openPopup(`音声合成に失敗しました。${e}`);
       })
       .finally(() => {
         setLoading(false);
@@ -258,7 +261,7 @@ export default function EditorContainer() {
       })
       .catch((e) => {
         console.error(e);
-        openPopup(`音声合成に失敗しました。\n${e}`);
+        openPopup(`音声合成に失敗しました。${e}`);
       })
       .finally(() => {
         setLoading(false);
@@ -319,7 +322,7 @@ export default function EditorContainer() {
           setLines(data);
         } catch (e) {
           console.error(e);
-          openPopup(`プロジェクトの読み込みに失敗しました。\n${e}`);
+          openPopup(`プロジェクトの読み込みに失敗しました。${e}`);
         }
       } else {
         console.error('typeof content', typeof content);
@@ -493,7 +496,7 @@ export default function EditorContainer() {
               />
             )}
           </Box>
-          {audioUrl && !loading && <audio src={audioUrl} controls autoPlay />}
+          {audioUrl && <audio src={audioUrl} controls autoPlay />}
         </Grid>
         <Grid xs={4}>
           <LineSetting
