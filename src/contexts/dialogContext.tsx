@@ -1,32 +1,32 @@
 import type { AlertColor } from '@mui/material';
 import React, { createContext, useState } from 'react';
 
-interface DialogContextType {
+interface PopupContextType {
   isOpen: boolean;
   message: string;
   severity?: AlertColor;
-  openDialog: (message: string) => void;
-  closeDialog: () => void;
+  openPopup: (message: string, severity?: AlertColor) => void;
+  closePopup: () => void;
 }
 
-const DialogContext = createContext<DialogContextType>({
+const PopupContext = createContext<PopupContextType>({
   isOpen: false,
   message: '',
   severity: 'error',
-  openDialog: () => {},
-  closeDialog: () => {},
+  openPopup: () => {},
+  closePopup: () => {},
 });
 
 interface DialogProviderProps {
   children: React.ReactNode;
 }
 
-export default function DialogProvider({ children }: DialogProviderProps) {
+export default function PopupProvvider({ children }: DialogProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('error');
 
-  const openDialog = (message: string, severity?: AlertColor) => {
+  const openPopup = (message: string, severity?: AlertColor) => {
     setIsOpen(true);
     setMessage(message);
     if (severity) {
@@ -35,19 +35,25 @@ export default function DialogProvider({ children }: DialogProviderProps) {
       setSeverity('error');
     }
   };
-  const closeDialog = () => {
+  const closePopup = () => {
     setIsOpen(false);
     setMessage('');
     setSeverity('error');
   };
 
   return (
-    <DialogContext.Provider
-      value={{ isOpen, message, openDialog, closeDialog, severity }}
+    <PopupContext.Provider
+      value={{
+        isOpen,
+        message,
+        openPopup,
+        closePopup,
+        severity,
+      }}
     >
       {children}
-    </DialogContext.Provider>
+    </PopupContext.Provider>
   );
 }
 
-export const useDialog = () => React.useContext(DialogContext);
+export const usePopup = () => React.useContext(PopupContext);

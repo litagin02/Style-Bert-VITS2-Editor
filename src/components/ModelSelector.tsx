@@ -1,6 +1,6 @@
 import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
-import type { ModelInfo } from './TTSContainer';
+import type { ModelInfo } from './EditorContainer';
 
 interface ModelSelectorProps {
   modelList: ModelInfo[];

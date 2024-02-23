@@ -1,5 +1,6 @@
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -16,8 +17,10 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { useState } from 'react';
 
+import { usePopup } from '@/contexts/dialogContext';
 import { fetchApi } from '@/utils/api';
 
 import type { MoraTone } from './AccentEditor';
@@ -64,6 +67,10 @@ export default function DictionaryDialog({
 
   const [yomiError, setYomiError] = useState(false);
 
+  const [fetched, setFetched] = useState(false);
+
+  const { openPopup: openDialog } = usePopup();
+
   const convertToZenkaku = (text: string) => {
     text = text.replace(/\p{Z}/gu, () => '\u3000'); // 空白を全角スペースに変換
     return text.replace(/[\u0021-\u007e]/g, (s) => {
@@ -74,7 +81,6 @@ export default function DictionaryDialog({
   const fetchAccent = async () => {
     setText(convertToZenkaku(text));
     setYomiError(false);
-    console.log('fetchAccent');
     const fetchedMoraTone = await fetchApi<MoraTone[]>('/g2p', {
       method: 'POST',
       body: JSON.stringify({ text: yomi + 'が' }),
@@ -96,6 +102,7 @@ export default function DictionaryDialog({
       .map((moraTone) => moraTone.mora)
       .join('');
     setYomi(newYomi);
+    setFetched(true);
   };
 
   const handleAccentCoreChange = (newAccentCore: number) => {
@@ -114,12 +121,11 @@ export default function DictionaryDialog({
     setMoraToneList(newMoraToneList);
   };
 
-  const submit = async () => {
+  const handleRegister = async () => {
     // アクセント核位置は、1-indexedだが、最後の場合（アクセント核無し）は0にする
     const accentCoreNumber =
       accentCore === moraToneList.length - 1 ? 0 : accentCore + 1;
-    console.log('submit', text, yomi, accentCoreNumber, priority);
-    const res = await fetchApi('/user_dict_word', {
+    const res = await fetchApi<{ message: string }>('/user_dict_word', {
       method: 'POST',
       body: JSON.stringify({
         surface: text,
@@ -127,18 +133,32 @@ export default function DictionaryDialog({
         accentType: `${accentCoreNumber}/${moraToneList.length - 1}`,
         priority,
       }),
+    }).catch((e) => {
+      openDialog(`登録に失敗しました: ${e.message}`, 'error');
+      return null;
     });
-    console.log('res', res);
+    if (!res) return;
+    openDialog(`${res.message}`, 'success');
+    handleClose();
+  };
+
+  const handleClose = () => {
+    onClose();
+    setText('');
+    setYomi('');
+    setMoraToneList([]);
+    setAccentCore(0);
+    setPriority(5);
+    setFetched(false);
   };
 
   return (
-    <Dialog
-      onClose={onClose}
-      open={open}
-      // sx={{ overflow: 'auto', width: '100%' }}
-    >
+    <Dialog onClose={onClose} open={open}>
       <DialogTitle>ユーザー辞書登録</DialogTitle>
       <DialogContent>
+        <Typography>
+          まだ辞書の編集や削除は実装していないので、dict/user_dict.csvファイルから直接削除等をしてください。
+        </Typography>
         <DialogContentText mb={2}>
           単語（名詞）の読みとアクセントを登録できます。正しいアクセント情報を登録するため、最後に助詞「が」が追加されています。
         </DialogContentText>
@@ -151,33 +171,40 @@ export default function DictionaryDialog({
           onChange={(e) => setText(e.target.value)}
           sx={{ mb: 2 }}
         />
-        <TextField
-          required
-          label='読み（平仮名かカタカナ）'
-          error={yomiError}
-          helperText={yomiError ? '平仮名かカタカナのみで入力してください' : ''}
-          fullWidth
-          value={yomi}
-          onChange={(e) => setYomi(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-        <Button
-          color='primary'
-          variant='outlined'
-          onClick={fetchAccent}
-          startIcon={<RefreshIcon />}
-          sx={{ mb: 2 }}
-        >
-          情報取得
-        </Button>
-        <Stack
-          // alignItems='center'
-          // display='flex'
-          // flexDirection='column'
-          // overflow='auto'
-          width='100%'
-          // sx={{ minWidth: 0 }}
-        >
+        <Grid container spacing={2} justifyContent='center' alignItems='center'>
+          <Grid xs={9}>
+            <TextField
+              required
+              label='読み（平仮名かカタカナ）'
+              error={yomiError}
+              helperText={
+                yomiError ? '平仮名かカタカナのみで入力してください' : ''
+              }
+              fullWidth
+              value={yomi}
+              onChange={(e) => setYomi(e.target.value)}
+              sx={{ mb: 2 }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  fetchAccent();
+                }
+              }}
+            />
+          </Grid>
+          <Grid xs>
+            <Button
+              color='primary'
+              variant='outlined'
+              onClick={fetchAccent}
+              startIcon={<RefreshIcon />}
+              sx={{ mb: 2 }}
+              fullWidth
+            >
+              情報取得
+            </Button>
+          </Grid>
+        </Grid>
+        <Stack>
           <FormControl>
             <FormLabel>アクセント位置</FormLabel>
             <RadioGroup
@@ -200,23 +227,30 @@ export default function DictionaryDialog({
           </FormControl>
           <AccentEditor moraToneList={moraToneList} disabled />
           <Typography sx={{ mt: 1 }}>優先度</Typography>
-          <Slider
-            value={priority}
-            onChange={(_, newValue) => setPriority(newValue as number)}
-            marks={marks}
-            step={1}
-            min={0}
-            max={10}
-            sx={{
-              mt: 2,
-              width: '80%',
-            }}
-          />
+          <Box sx={{ textAlign: 'center' }}>
+            <Slider
+              value={priority}
+              onChange={(_, newValue) => setPriority(newValue as number)}
+              marks={marks}
+              step={1}
+              min={0}
+              max={10}
+              sx={{
+                mt: 2,
+                width: '80%',
+              }}
+            />
+          </Box>
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button type='submit' variant='contained' onClick={submit}>
+        <Button onClick={handleClose}>キャンセル</Button>
+        <Button
+          type='submit'
+          variant='contained'
+          onClick={handleRegister}
+          disabled={!fetched}
+        >
           登録
         </Button>
       </DialogActions>

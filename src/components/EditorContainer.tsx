@@ -1,10 +1,14 @@
+// TODO: コンポーネントを分割してリファクタリングする
 import AddIcon from '@mui/icons-material/Add';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DeleteIcon from '@mui/icons-material/Delete';
+import MenuIcon from '@mui/icons-material/Menu';
 import {
   AppBar,
   Box,
   Button,
   CircularProgress,
+  Divider,
   IconButton,
   Menu,
   MenuItem,
@@ -18,14 +22,14 @@ import { saveAs } from 'file-saver';
 import { useEffect, useState } from 'react';
 
 import AccentEditor from '@/components/AccentEditor';
-import { useDialog } from '@/contexts/dialogContext';
+import { usePopup } from '@/contexts/dialogContext';
 import useWindowSize from '@/hooks/useWindowSize';
 import { fetchApi } from '@/utils/api';
 
 import type { MoraTone } from './AccentEditor';
 import DictionaryDialog from './DictionaryDialog';
+import LineSetting from './LineSetting';
 import SimpleBackdrop from './SimpleBackdrop';
-import TTSSetting from './TTSSetting';
 
 export interface ModelInfo {
   name: string;
@@ -33,7 +37,7 @@ export interface ModelInfo {
   styles: string[];
 }
 
-export interface EditorState {
+export interface LineState {
   text: string;
   model: string;
   modelFile: string;
@@ -45,9 +49,12 @@ export interface EditorState {
   sdpRatio: number;
   noise: number;
   noisew: number;
+  pitchScale: number;
+  intonationScale: number;
+  silenceAfter: number;
 }
 
-const defaultEditorState: EditorState = {
+export const defaultLineState: LineState = {
   text: '',
   model: '',
   modelFile: '',
@@ -59,6 +66,9 @@ const defaultEditorState: EditorState = {
   sdpRatio: 0.2,
   noise: 0.6,
   noisew: 0.8,
+  pitchScale: 1,
+  intonationScale: 1,
+  silenceAfter: 0.5,
 };
 
 // Validation
@@ -68,7 +78,7 @@ function isMoraTone(data: any): data is MoraTone {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isEditorState(data: any): data is EditorState {
+function isLineState(data: any): data is LineState {
   return (
     typeof data.text === 'string' &&
     typeof data.model === 'string' &&
@@ -81,117 +91,163 @@ function isEditorState(data: any): data is EditorState {
     typeof data.speed === 'number' &&
     typeof data.sdpRatio === 'number' &&
     typeof data.noise === 'number' &&
-    typeof data.noisew === 'number'
+    typeof data.noisew === 'number' &&
+    typeof data.silenceAfter === 'number' &&
+    typeof data.pitchScale === 'number' &&
+    typeof data.intonationScale === 'number'
   );
 }
 
-export default function TTSContainer() {
+export default function EditorContainer() {
   const [modelList, setModelList] = useState<ModelInfo[]>([]);
-  const [editors, setEditors] = useState<EditorState[]>([defaultEditorState]);
-  const [currentEditorIndex, setCurrentEditorIndex] = useState(0);
 
-  const { openDialog } = useDialog();
+  const [lines, setLines] = useState<LineState[]>([defaultLineState]);
+  const [currentLineIndex, setCurrentLineIndex] = useState(0);
+
+  const { openPopup } = usePopup();
 
   const [audioUrl, setAudioUrl] = useState('');
   const [openBackdrop, setOpenBackdrop] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dictOpen, setDictOpen] = useState(false);
 
+  const [version, setVersion] = useState('');
+
   const { height } = useWindowSize();
 
-  const addEditor = () => {
-    setEditors([
-      ...editors,
+  useEffect(() => {
+    setOpenBackdrop(true);
+
+    const fetchData = () => {
+      fetchApi<ModelInfo[]>('/models_info')
+        .then((data) => {
+          setModelList(data);
+          setLines([
+            {
+              ...defaultLineState,
+              model: data[0].name || '',
+              modelFile: data[0].files[0] || '',
+              style: data[0].styles[0] || '',
+            },
+          ]);
+          setOpenBackdrop(false);
+        })
+        .catch((e) => {
+          // openDialog(`モデル情報の取得に失敗しました。\n${e}`);
+          console.error(e);
+          setTimeout(fetchData, 2000); // 2秒後に再試行
+        });
+    };
+
+    const fetchVersion = () => {
+      fetchApi<string>('/version')
+        .then((data) => {
+          setVersion(data);
+        })
+        .catch((e) => {
+          console.error(e);
+          setTimeout(fetchVersion, 2000); // 2秒後に再試行
+        });
+    };
+
+    fetchData();
+    fetchVersion();
+  }, []);
+
+  const addLine = () => {
+    setLines([
+      ...lines,
       {
-        ...editors[currentEditorIndex],
+        ...lines[lines.length - 1],
         text: '',
         moraToneList: [],
         accentModified: false,
       },
     ]);
+    setCurrentLineIndex(lines.length);
   };
 
-  const setEditorState = (newState: Partial<EditorState>) => {
-    const newEditors = editors.map((editor, index) => {
-      if (index === currentEditorIndex) {
+  const setLineState = (newState: Partial<LineState>) => {
+    const newLines = lines.map((line, index) => {
+      if (index === currentLineIndex) {
         return {
-          ...editor,
+          ...line,
           ...newState,
         };
       }
-      return editor;
+      return line;
     });
-    setEditors(newEditors);
+    setLines(newLines);
   };
-
-  useEffect(() => {
-    setOpenBackdrop(true);
-    fetchApi<ModelInfo[]>('/models_info')
-      .then((data) => {
-        setModelList(data);
-        console.log(data);
-        console.log(data[0].name);
-        setEditors([
-          {
-            ...defaultEditorState,
-            model: data[0].name || '',
-            modelFile: data[0].files[0] || '',
-            style: data[0].styles[0] || '',
-          },
-        ]);
-      })
-      .catch((e) => {
-        console.error(e);
-        // openDialog(`モデル情報の取得に失敗しました。\n${e}`);
-      })
-      .finally(() => {
-        setOpenBackdrop(false);
-      });
-  }, []);
 
   const fetchMoraTonePromise = async (): Promise<MoraTone[]> => {
     return fetchApi<MoraTone[]>('/g2p', {
       method: 'POST',
-      body: JSON.stringify({ text: editors[currentEditorIndex].text }),
+      body: JSON.stringify({ text: lines[currentLineIndex].text }),
     });
   };
 
   const handleTextChange = (newText: string) => {
-    setEditorState({ text: newText, moraToneList: [], accentModified: false });
+    setLineState({ text: newText, moraToneList: [], accentModified: false });
   };
 
-  const handleSynthesize = async () => {
+  const handleSynthesis = async () => {
     setLoading(true);
-    const newMoraToneList = editors[currentEditorIndex].accentModified
-      ? editors[currentEditorIndex].moraToneList
+    const newMoraToneList = lines[currentLineIndex].accentModified
+      ? lines[currentLineIndex].moraToneList
       : await fetchMoraTonePromise();
-    setEditorState({ moraToneList: newMoraToneList });
-    const {
-      model,
-      modelFile,
-      text,
-      style,
-      styleWeight,
-      speed,
-      sdpRatio,
-      noise,
-      noisew,
-    } = editors[currentEditorIndex];
+    setLineState({ moraToneList: newMoraToneList });
+    const newLine = {
+      ...lines[currentLineIndex],
+      moraToneList: newMoraToneList,
+    };
     await fetchApi<Blob>(
       '/synthesis',
       {
         method: 'POST',
+        body: JSON.stringify(newLine),
+      },
+      'blob',
+    )
+      .then((data) => {
+        const newAudioUrl = URL.createObjectURL(data);
+        setAudioUrl(newAudioUrl);
+      })
+      .catch((e) => {
+        console.error(e);
+        openPopup(`音声合成に失敗しました。\n${e.message}`);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  const handleMultiSynthesis = async () => {
+    setLoading(true);
+    // すべてのテキストに対して未取得な読み・アクセント情報を取得
+    const newMoraToneList = await Promise.all(
+      lines.map(async (line) => {
+        if (line.accentModified) {
+          return line.moraToneList;
+        }
+        return await fetchApi<MoraTone[]>('/g2p', {
+          method: 'POST',
+          body: JSON.stringify({ text: line.text }),
+        });
+      }),
+    );
+    const newLines = lines.map((line, index) => ({
+      ...line,
+      moraToneList: newMoraToneList[index],
+    }));
+    setLines(newLines);
+    // newLinesを/multi-synthesisに送信
+    await fetchApi<Blob>(
+      '/multi-synthesis',
+      {
+        method: 'POST',
         body: JSON.stringify({
-          model,
-          modelFile,
-          text,
-          moraToneList: newMoraToneList,
-          style,
-          styleWeight,
-          length: 1 / speed,
-          sdpRatio,
-          noise,
-          noisew,
+          lines: newLines,
         }),
       },
       'blob',
@@ -202,7 +258,7 @@ export default function TTSContainer() {
       })
       .catch((e) => {
         console.error(e);
-        openDialog(`音声合成に失敗しました。\n${e}`);
+        openPopup(`音声合成に失敗しました。\n${e}`);
       })
       .finally(() => {
         setLoading(false);
@@ -211,17 +267,14 @@ export default function TTSContainer() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
-      handleSynthesize();
+      handleSynthesis();
     }
   };
 
-  const handleDelete = (editorIndex: number) => {
-    setEditors([
-      ...editors.slice(0, editorIndex),
-      ...editors.slice(editorIndex + 1),
-    ]);
-    if (editorIndex <= currentEditorIndex && currentEditorIndex > 0) {
-      setCurrentEditorIndex(currentEditorIndex - 1);
+  const handleDelete = (lineIndex: number) => {
+    setLines([...lines.slice(0, lineIndex), ...lines.slice(lineIndex + 1)]);
+    if (lineIndex <= currentLineIndex && currentLineIndex > 0) {
+      setCurrentLineIndex(currentLineIndex - 1);
     }
   };
 
@@ -235,16 +288,16 @@ export default function TTSContainer() {
     setAnchorEl(null);
   };
 
-  // 保存ボタンのクリックイベントハンドラ
   const handleSave = () => {
-    handleMenuClose();
-    const json = JSON.stringify(editors);
+    const json = JSON.stringify(lines, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     saveAs(blob, 'project.json');
+    handleMenuClose();
   };
 
   const handleLoad = (event: React.ChangeEvent<HTMLInputElement>) => {
     handleMenuClose();
+    setCurrentLineIndex(0);
 
     const file = event.target.files?.[0];
     if (!file) {
@@ -257,22 +310,20 @@ export default function TTSContainer() {
       const content = e.target?.result;
       if (typeof content === 'string') {
         try {
-          const data: EditorState[] = JSON.parse(content);
-          console.log(data);
-          if (!Array.isArray(data) || !data.every(isEditorState)) {
-            console.error('データがEditorState[]型と一致しません。');
-            openDialog('データが有効な形式ではありません。');
+          const data: LineState[] = JSON.parse(content);
+          if (!Array.isArray(data) || !data.every(isLineState)) {
+            console.error('データがLineState[]型と一致しません。');
+            openPopup('データが有効な形式ではありません。');
             return;
           }
-          setEditors(data);
-          setCurrentEditorIndex(0);
+          setLines(data);
         } catch (e) {
           console.error(e);
-          openDialog(`プロジェクトの読み込みに失敗しました。\n${e}`);
+          openPopup(`プロジェクトの読み込みに失敗しました。\n${e}`);
         }
       } else {
         console.error('typeof content', typeof content);
-        openDialog('ファイルの読み込みに失敗しました。');
+        openPopup('ファイルの読み込みに失敗しました。');
       }
     };
 
@@ -283,23 +334,22 @@ export default function TTSContainer() {
     <>
       <AppBar position='static'>
         <Toolbar>
-          <Button
-            size='large'
+          <IconButton
             onClick={handleMenuOpen}
             color='inherit'
+            size='large'
+            edge='start'
             sx={{ mr: 2 }}
           >
-            ファイル
-          </Button>
-          <Typography
-            variant='h6'
-            // 中央に表示
-            sx={{ flexGrow: 1, textAlign: 'center' }}
-          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant='h6' sx={{ flexGrow: 1 }}>
             Style-Bert-VITS2 エディター
           </Typography>
+          <Typography variant='subtitle1' sx={{ mr: 2 }}>
+            SBV2 ver: {version}, editor ver: {process.env.version}
+          </Typography>
           <Menu
-            id='menu-appbar'
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
@@ -309,16 +359,25 @@ export default function TTSContainer() {
               プロジェクトの読み込み
               <input type='file' onChange={handleLoad} hidden />
             </MenuItem>
+            <Divider />
+            <MenuItem
+              onClick={() => {
+                setDictOpen(true);
+                handleMenuClose();
+              }}
+            >
+              辞書登録
+            </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
       <Grid container spacing={2} mt={1}>
-        <Grid xs={8}>
+        <Grid xs>
           <Paper
             sx={{ p: 2, height: height / 2, overflow: 'auto' }}
             elevation={2}
           >
-            {editors.map((editor, index) => (
+            {lines.map((line, index) => (
               <Grid
                 container
                 key={index}
@@ -336,24 +395,31 @@ export default function TTSContainer() {
                   },
                 }}
               >
+                <Grid xs='auto'>
+                  <ChevronRightIcon
+                    fontSize='small'
+                    sx={{
+                      display: currentLineIndex === index ? 'block' : 'none',
+                    }}
+                  />
+                </Grid>
                 <Grid xs>
                   <TextField
                     label={`テキスト${index + 1}`}
                     fullWidth
-                    value={editor.text}
-                    onFocus={() => setCurrentEditorIndex(index)}
+                    value={line.text}
+                    onFocus={() => setCurrentLineIndex(index)}
                     onChange={(e) => handleTextChange(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    variant={
-                      index === currentEditorIndex ? 'filled' : 'outlined'
-                    }
+                    focused={currentLineIndex === index}
+                    autoFocus={true}
                   />
                 </Grid>
                 <Grid xs='auto'>
                   <IconButton
-                    disabled={editors.length === 1}
-                    onClick={() => handleDelete(index)}
                     className='delete-button'
+                    disabled={lines.length === 1}
+                    onClick={() => handleDelete(index)}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -363,16 +429,16 @@ export default function TTSContainer() {
             <Button
               variant='outlined'
               startIcon={<AddIcon />}
-              onClick={addEditor}
+              onClick={addLine}
               sx={{ mt: 2 }}
             >
               テキスト追加
             </Button>
           </Paper>
           <AccentEditor
-            moraToneList={editors[currentEditorIndex].moraToneList}
+            moraToneList={lines[currentLineIndex].moraToneList}
             setMoraToneList={(moraToneList) =>
-              setEditorState({ moraToneList, accentModified: true })
+              setLineState({ moraToneList, accentModified: true })
             }
           />
           <Box
@@ -388,9 +454,35 @@ export default function TTSContainer() {
               variant='contained'
               color='primary'
               disabled={loading}
-              onClick={handleSynthesize}
+              onClick={handleSynthesis}
             >
               音声合成
+            </Button>
+            {loading && (
+              <CircularProgress
+                size={24}
+                sx={{
+                  position: 'absolute',
+                }}
+              />
+            )}
+          </Box>
+          <Box
+            mt={2}
+            sx={{
+              position: 'relative',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Button
+              variant='outlined'
+              color='primary'
+              disabled={loading}
+              onClick={handleMultiSynthesis}
+            >
+              全てのテキストを音声合成
             </Button>
             {loading && (
               <CircularProgress
@@ -404,13 +496,12 @@ export default function TTSContainer() {
           {audioUrl && !loading && <audio src={audioUrl} controls autoPlay />}
         </Grid>
         <Grid xs={4}>
-          <TTSSetting
+          <LineSetting
             modelList={modelList}
-            editors={editors}
-            currentIndex={currentEditorIndex}
-            setEditors={setEditors}
+            lines={lines}
+            currentIndex={currentLineIndex}
+            setLines={setLines}
           />
-          <Button onClick={() => setDictOpen(true)}>辞書登録</Button>
         </Grid>
       </Grid>
       <SimpleBackdrop open={openBackdrop} />

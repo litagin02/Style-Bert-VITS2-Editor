@@ -1,10 +1,10 @@
 import { Alert, Snackbar } from '@mui/material';
 import React from 'react';
 
-import { useDialog } from '@/contexts/dialogContext';
+import { usePopup } from '@/contexts/dialogContext';
 
-const AlertDialog = () => {
-  const { isOpen, closeDialog, message, severity } = useDialog();
+const AlertPopup = () => {
+  const { isOpen, closePopup: closeDialog, message, severity } = usePopup();
 
   return (
     <Snackbar
@@ -25,4 +25,4 @@ const AlertDialog = () => {
   );
 };
 
-export default AlertDialog;
+export default AlertPopup;

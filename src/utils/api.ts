@@ -2,7 +2,7 @@ export async function fetchApi<T>(
   endpoint: string, options: RequestInit = {}, responseType: 'json' | 'blob' | 'text' = 'json'
 ):
   Promise<T> {
-  console.log('fetchApi', endpoint);
+  console.log('fetchApi', endpoint, responseType, options);
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
   const fullUrl = `${baseUrl}${endpoint}`;
 
@@ -17,9 +17,9 @@ export async function fetchApi<T>(
     case 'json':
       return await res.json() as T;
     case 'blob':
-      return await res.blob() as unknown as T;
+      return await res.blob() as T;
     case 'text':
-      return await res.text() as unknown as T;
+      return await res.text() as T;
     default:
       return await res.json() as T;
   }
