@@ -3,8 +3,10 @@ export async function fetchApi<T>(
 ):
   Promise<T> {
   console.log('fetchApi', endpoint, responseType, options);
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  const fullUrl = `${baseUrl}${endpoint}`;
+  const baseUrl = process.env.NODE_ENV === 'development'
+    ? process.env.NEXT_PUBLIC_API_URL  // 開発環境では.envから読み込む
+    : '';  // 本番環境では相対URLを使用
+  const fullUrl = `${baseUrl}/api${endpoint}`;
 
   const res = await fetch(fullUrl, { headers: { 'Content-Type': 'application/json' }, ...options });
   if (!res.ok) {
