@@ -241,9 +241,9 @@ export default function EditorContainer() {
       moraToneList: newMoraToneList[index],
     }));
     setLines(newLines);
-    // newLinesを/multi-synthesisに送信
+
     await fetchApi<Blob>(
-      '/multi-synthesis',
+      '/multi_synthesis',
       {
         method: 'POST',
         body: JSON.stringify({
