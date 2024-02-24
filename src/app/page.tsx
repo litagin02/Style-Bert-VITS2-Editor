@@ -1,7 +1,7 @@
 'use client';
 import { Container } from '@mui/material';
 
-import AlertPopup from '@/components/AlertDialog';
+import AlertPopup from '@/components/AlertPopup';
 import EditorContainer from '@/components/EditorContainer';
 import PopupProvvider from '@/contexts/dialogContext';
 

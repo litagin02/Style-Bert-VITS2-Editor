@@ -4,17 +4,17 @@ import React from 'react';
 import { usePopup } from '@/contexts/dialogContext';
 
 const AlertPopup = () => {
-  const { isOpen, closePopup: closeDialog, message, severity } = usePopup();
+  const { isOpen, closePopup, message, severity } = usePopup();
 
   return (
     <Snackbar
       open={isOpen}
       // autoHideDuration={6000}
-      onClose={closeDialog}
+      onClose={closePopup}
       anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
     >
       <Alert
-        onClose={closeDialog}
+        onClose={closePopup}
         severity={severity}
         sx={{ width: '100%' }}
         elevation={6}

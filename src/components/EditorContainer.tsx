@@ -117,8 +117,12 @@ export default function EditorContainer() {
 
   useEffect(() => {
     // 初期のモデル情報取得
-    // FIXME: 無限ループへの対策
     setOpenBackdrop(true);
+
+    let retryCount = 0;
+    const maxRetries = 10;
+    const retryInterval = 1000; // 1秒
+    let timeoutId: NodeJS.Timeout;
 
     const fetchData = () => {
       fetchApi<ModelInfo[]>('/models_info')
@@ -135,12 +139,50 @@ export default function EditorContainer() {
           setOpenBackdrop(false);
         })
         .catch((e) => {
-          // openDialog(`モデル情報の取得に失敗しました。\n${e}`);
-          // FIXME: openDialogを入れると依存配列が変わるため、fetchApiが再実行されてしまう
-          console.error(e);
-          setTimeout(fetchData, 2000); // 2秒後に再試行
+          if (retryCount < maxRetries) {
+            console.log(e);
+            retryCount++;
+            console.log(
+              `モデル情報の取得に失敗しました。リトライします。${retryCount}回目...`,
+            );
+            timeoutId = setTimeout(fetchData, retryInterval);
+          } else {
+            console.log(
+              `モデル情報の取得に失敗しました。リトライ回数: ${retryCount}`,
+            );
+            console.log(e);
+            openPopup(`モデル情報の取得に失敗しました。\n${e}`);
+            setOpenBackdrop(false);
+          }
         });
     };
+
+    // const fetchVersion = () => {
+    //   fetchApi<string>('/version')
+    //     .then((data) => {
+    //       setVersion(data);
+    //     })
+    //     .catch((e) => {
+    //       console.error(e);
+    //     });
+    // };
+
+    fetchData();
+    // fetchVersion();
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [openPopup]);
+
+  useEffect(() => {
+    // 初回のバージョン取得
+    let retryCount = 0;
+    const maxRetries = 10;
+    const retryInterval = 1000; // 1秒
+    let timeoutId: NodeJS.Timeout;
 
     const fetchVersion = () => {
       fetchApi<string>('/version')
@@ -148,13 +190,29 @@ export default function EditorContainer() {
           setVersion(data);
         })
         .catch((e) => {
-          console.error(e);
-          setTimeout(fetchVersion, 2000); // 2秒後に再試行
+          if (retryCount < maxRetries) {
+            console.log(e);
+            retryCount++;
+            console.log(
+              `バージョン情報の取得に失敗しました。リトライします。${retryCount}回目...`,
+            );
+            timeoutId = setTimeout(fetchVersion, retryInterval);
+          } else {
+            console.log(
+              `バージョン情報の取得に失敗しました。リトライ回数: ${retryCount}`,
+            );
+            console.log(e);
+          }
         });
     };
 
-    fetchData();
     fetchVersion();
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   const addLine = () => {
@@ -337,7 +395,7 @@ export default function EditorContainer() {
     <>
       <AppBar position='static'>
         <Toolbar>
-          <IconButton
+          {/* <IconButton
             onClick={handleMenuOpen}
             color='inherit'
             size='large'
@@ -345,8 +403,16 @@ export default function EditorContainer() {
             sx={{ mr: 2 }}
           >
             <MenuIcon />
-          </IconButton>
-          <Typography variant='h6' sx={{ flexGrow: 1 }}>
+          </IconButton> */}
+          <Button
+            onClick={handleMenuOpen}
+            color='inherit'
+            startIcon={<MenuIcon />}
+          >
+            メニュー
+          </Button>
+
+          <Typography variant='h6' sx={{ flexGrow: 3, textAlign: 'center' }}>
             Style-Bert-VITS2 エディター
           </Typography>
           <Typography variant='subtitle1' sx={{ mr: 2 }}>

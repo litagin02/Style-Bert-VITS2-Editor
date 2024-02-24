@@ -1,5 +1,5 @@
 import type { AlertColor } from '@mui/material';
-import React, { createContext, useState } from 'react';
+import React, { createContext, useCallback, useState } from 'react';
 
 interface PopupContextType {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export default function PopupProvvider({ children }: DialogProviderProps) {
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('error');
 
-  const openPopup = (message: string, severity?: AlertColor) => {
+  const openPopup = useCallback((message: string, severity?: AlertColor) => {
     setIsOpen(true);
     setMessage(message);
     if (severity) {
@@ -34,12 +34,13 @@ export default function PopupProvvider({ children }: DialogProviderProps) {
     } else {
       setSeverity('error');
     }
-  };
-  const closePopup = () => {
+  }, []);
+
+  const closePopup = useCallback(() => {
     setIsOpen(false);
     setMessage('');
     setSeverity('error');
-  };
+  }, []);
 
   return (
     <PopupContext.Provider
