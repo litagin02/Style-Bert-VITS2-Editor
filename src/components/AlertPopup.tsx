@@ -1,7 +1,7 @@
 import { Alert, Snackbar } from '@mui/material';
 import React from 'react';
 
-import { usePopup } from '@/contexts/dialogContext';
+import { usePopup } from '@/contexts/PopupProvider';
 
 const AlertPopup = () => {
   const { isOpen, closePopup, message, severity } = usePopup();

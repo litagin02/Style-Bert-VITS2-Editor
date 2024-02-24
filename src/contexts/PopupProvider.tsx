@@ -21,7 +21,7 @@ interface DialogProviderProps {
   children: React.ReactNode;
 }
 
-export default function PopupProvvider({ children }: DialogProviderProps) {
+export default function PopupProvider({ children }: DialogProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('error');

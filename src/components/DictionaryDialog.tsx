@@ -20,7 +20,7 @@ import {
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { useState } from 'react';
 
-import { usePopup } from '@/contexts/dialogContext';
+import { usePopup } from '@/contexts/PopupProvider';
 import { fetchApi } from '@/utils/api';
 
 import type { MoraTone } from './AccentEditor';

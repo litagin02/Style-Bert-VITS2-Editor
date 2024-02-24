@@ -3,15 +3,15 @@ import { Container } from '@mui/material';
 
 import AlertPopup from '@/components/AlertPopup';
 import EditorContainer from '@/components/EditorContainer';
-import PopupProvvider from '@/contexts/dialogContext';
+import PopupProvider from '@/contexts/PopupProvider';
 
 export default function Home() {
   return (
     <Container maxWidth='xl'>
-      <PopupProvvider>
+      <PopupProvider>
         <AlertPopup />
         <EditorContainer />
-      </PopupProvvider>
+      </PopupProvider>
     </Container>
   );
 }

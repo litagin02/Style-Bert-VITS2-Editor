@@ -22,7 +22,7 @@ import { saveAs } from 'file-saver';
 import { useEffect, useState } from 'react';
 
 import AccentEditor from '@/components/AccentEditor';
-import { usePopup } from '@/contexts/dialogContext';
+import { usePopup } from '@/contexts/PopupProvider';
 import useWindowSize from '@/hooks/useWindowSize';
 import { fetchApi } from '@/utils/api';
 
@@ -157,18 +157,7 @@ export default function EditorContainer() {
         });
     };
 
-    // const fetchVersion = () => {
-    //   fetchApi<string>('/version')
-    //     .then((data) => {
-    //       setVersion(data);
-    //     })
-    //     .catch((e) => {
-    //       console.error(e);
-    //     });
-    // };
-
     fetchData();
-    // fetchVersion();
 
     return () => {
       if (timeoutId) {
