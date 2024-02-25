@@ -432,9 +432,9 @@ export default function EditorContainer() {
                 key={index}
                 spacing={1}
                 mt={2}
+                alignItems='center'
+                justifyContent='space-between'
                 sx={{
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
                   // ホバーしたときに削除ボタンを表示
                   '& .delete-button': {
                     display: 'none',

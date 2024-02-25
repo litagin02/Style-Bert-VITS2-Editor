@@ -53,11 +53,16 @@ function InputSlider({
 
   return (
     <Box>
-      <Typography id='input-slider' gutterBottom>
-        {label}
-      </Typography>
-      <Grid container spacing={2} alignItems='center'>
-        <Grid xs>
+      <Grid
+        container
+        spacing={2}
+        alignItems='center'
+        justifyContent='space-between'
+      >
+        <Grid xs={9}>
+          <Typography id='input-slider' gutterBottom>
+            {label}
+          </Typography>
           <Slider
             value={typeof value === 'number' ? value : min}
             onChange={handleSliderChange}
@@ -67,10 +72,9 @@ function InputSlider({
             max={max}
           />
         </Grid>
-        <Grid>
+        <Grid xs={3}>
           <Input
             value={value}
-            size='small'
             onChange={handleInputChange}
             onBlur={handleBlur}
             inputProps={{
@@ -208,41 +212,39 @@ export default function LineSetting({
         min={0}
         max={50}
       />
-      <Typography gutterBottom>話速: {lines[currentIndex].speed}</Typography>
-      <Slider
+      <InputSlider
+        label='話速'
+        value={lines[currentIndex].speed}
+        setValue={(value) => setLineState({ speed: value })}
         step={0.05}
         min={0.5}
         max={2}
-        value={lines[currentIndex].speed}
-        onChange={(_, value) => setLineState({ speed: value as number })}
       />
-      <Typography gutterBottom>
-        テンポの緩急: {lines[currentIndex].sdpRatio}
-      </Typography>
-      <Slider
-        step={0.05}
-        min={0}
-        max={1}
+      <InputSlider
+        label='テンポの緩急'
         value={lines[currentIndex].sdpRatio}
-        onChange={(_, value) => setLineState({ sdpRatio: value as number })}
-      />
-      <Typography gutterBottom>Noise: {lines[currentIndex].noise}</Typography>
-      <Slider
+        setValue={(value) => setLineState({ sdpRatio: value })}
         step={0.05}
         min={0}
         max={1}
+      />
+      <InputSlider
+        label='Noise'
         value={lines[currentIndex].noise}
-        onChange={(_, value) => setLineState({ noise: value as number })}
-      />
-      <Typography gutterBottom>NoiseW: {lines[currentIndex].noisew}</Typography>
-      <Slider
+        setValue={(value) => setLineState({ noise: value })}
         step={0.05}
         min={0}
         max={1}
-        value={lines[currentIndex].noisew}
-        onChange={(_, value) => setLineState({ noisew: value as number })}
       />
-      <Box sx={{ display: 'flex', alignItems: 'center' }} mb={1}>
+      <InputSlider
+        label='NoiseW'
+        value={lines[currentIndex].noisew}
+        setValue={(value) => setLineState({ noisew: value })}
+        step={0.05}
+        min={0}
+        max={1}
+      />
+      {/* <Box sx={{ display: 'flex', alignItems: 'center' }} mb={1}>
         <Tooltip title='1以外では音質が劣化します'>
           <InfoOutlinedIcon fontSize='small' />
         </Tooltip>
@@ -270,15 +272,14 @@ export default function LineSetting({
           setLineState({ intonationScale: value as number })
         }
       />
-      <Typography gutterBottom>
-        次のテキストとの間の無音: {lines[currentIndex].silenceAfter}
-      </Typography>
-      <Slider
+       */}
+      <InputSlider
+        label='次のテキストとの間の無音'
+        value={lines[currentIndex].silenceAfter}
+        setValue={(value) => setLineState({ silenceAfter: value })}
         step={0.05}
         min={0}
         max={1.5}
-        value={lines[currentIndex].silenceAfter}
-        onChange={(_, value) => setLineState({ silenceAfter: value as number })}
       />
     </Paper>
   );
