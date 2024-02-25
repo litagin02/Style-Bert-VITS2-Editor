@@ -244,35 +244,36 @@ export default function LineSetting({
         min={0}
         max={1}
       />
-      {/* <Box sx={{ display: 'flex', alignItems: 'center' }} mb={1}>
-        <Tooltip title='1以外では音質が劣化します'>
-          <InfoOutlinedIcon fontSize='small' />
-        </Tooltip>
-        <Typography>音高: {lines[currentIndex].pitchScale}</Typography>
+      <Box sx={{ display: 'none' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }} mb={1}>
+          <Tooltip title='1以外では音質が劣化します'>
+            <InfoOutlinedIcon fontSize='small' />
+          </Tooltip>
+          <Typography>音高: {lines[currentIndex].pitchScale}</Typography>
+        </Box>
+        <Slider
+          step={0.05}
+          min={0.7}
+          max={1.3}
+          value={lines[currentIndex].pitchScale}
+          onChange={(_, value) => setLineState({ pitchScale: value as number })}
+        />
+        <Box sx={{ display: 'flex', alignItems: 'center' }} mb={1}>
+          <Tooltip title='1以外では音質が劣化します'>
+            <InfoOutlinedIcon fontSize='small' />
+          </Tooltip>
+          <Typography>抑揚: {lines[currentIndex].intonationScale}</Typography>
+        </Box>
+        <Slider
+          step={0.05}
+          min={0}
+          max={2}
+          value={lines[currentIndex].intonationScale}
+          onChange={(_, value) =>
+            setLineState({ intonationScale: value as number })
+          }
+        />
       </Box>
-      <Slider
-        step={0.05}
-        min={0.7}
-        max={1.3}
-        value={lines[currentIndex].pitchScale}
-        onChange={(_, value) => setLineState({ pitchScale: value as number })}
-      />
-      <Box sx={{ display: 'flex', alignItems: 'center' }} mb={1}>
-        <Tooltip title='1以外では音質が劣化します'>
-          <InfoOutlinedIcon fontSize='small' />
-        </Tooltip>
-        <Typography>抑揚: {lines[currentIndex].intonationScale}</Typography>
-      </Box>
-      <Slider
-        step={0.05}
-        min={0}
-        max={2}
-        value={lines[currentIndex].intonationScale}
-        onChange={(_, value) =>
-          setLineState({ intonationScale: value as number })
-        }
-      />
-       */}
       <InputSlider
         label='次のテキストとの間の無音'
         value={lines[currentIndex].silenceAfter}
