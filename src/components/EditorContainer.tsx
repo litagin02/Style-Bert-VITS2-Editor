@@ -58,7 +58,7 @@ export const defaultLineState: LineState = {
   text: '',
   model: '',
   modelFile: '',
-  style: '',
+  style: '', // fetch前はNeutralがないので空文字列にする
   moraToneList: [],
   accentModified: false,
   styleWeight: 5,
@@ -151,7 +151,7 @@ export default function EditorContainer() {
               `モデル情報の取得に失敗しました。リトライ回数: ${retryCount}`,
             );
             console.log(e);
-            openPopup(`モデル情報の取得に失敗しました。\n${e}`);
+            openPopup(`モデル情報の取得に失敗しました。\n${e}`, 'error');
             setOpenBackdrop(false);
           }
         });
@@ -265,7 +265,7 @@ export default function EditorContainer() {
       })
       .catch((e) => {
         console.error(e);
-        openPopup(`音声合成に失敗しました。${e}`);
+        openPopup(`音声合成に失敗しました。${e}`, 'error');
       })
       .finally(() => {
         setLoading(false);
@@ -308,7 +308,7 @@ export default function EditorContainer() {
       })
       .catch((e) => {
         console.error(e);
-        openPopup(`音声合成に失敗しました。${e}`);
+        openPopup(`音声合成に失敗しました。${e}`, 'error');
       })
       .finally(() => {
         setLoading(false);
@@ -363,17 +363,17 @@ export default function EditorContainer() {
           const data: LineState[] = JSON.parse(content);
           if (!Array.isArray(data) || !data.every(isLineState)) {
             console.error('データがLineState[]型と一致しません。');
-            openPopup('データが有効な形式ではありません。');
+            openPopup('データが有効な形式ではありません。', 'error');
             return;
           }
           setLines(data);
         } catch (e) {
           console.error(e);
-          openPopup(`プロジェクトの読み込みに失敗しました。${e}`);
+          openPopup(`プロジェクトの読み込みに失敗しました。${e}`, 'error');
         }
       } else {
         console.error('typeof content', typeof content);
-        openPopup('ファイルの読み込みに失敗しました。');
+        openPopup('ファイルの読み込みに失敗しました。', 'error');
       }
     };
 
@@ -384,15 +384,6 @@ export default function EditorContainer() {
     <>
       <AppBar position='static'>
         <Toolbar>
-          {/* <IconButton
-            onClick={handleMenuOpen}
-            color='inherit'
-            size='large'
-            edge='start'
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton> */}
           <Button
             onClick={handleMenuOpen}
             color='inherit'
@@ -404,7 +395,7 @@ export default function EditorContainer() {
           <Typography variant='h6' sx={{ flexGrow: 3, textAlign: 'center' }}>
             Style-Bert-VITS2 エディター
           </Typography>
-          <Typography variant='subtitle1' sx={{ mr: 2 }}>
+          <Typography variant='subtitle1'>
             SBV2 ver: {version}, editor ver: {process.env.version}
           </Typography>
           <Menu
@@ -424,13 +415,13 @@ export default function EditorContainer() {
                 handleMenuClose();
               }}
             >
-              辞書登録
+              ユーザー辞書の編集
             </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
-      <Grid container spacing={2} mt={1}>
-        <Grid xs>
+      <Box display='flex' justifyContent='space-between' gap={2} mt={2}>
+        <Box flexGrow={1}>
           <Paper
             sx={{ p: 2, height: height / 2, overflow: 'auto' }}
             elevation={2}
@@ -552,16 +543,16 @@ export default function EditorContainer() {
             )}
           </Box>
           {audioUrl && <audio src={audioUrl} controls autoPlay />}
-        </Grid>
-        <Grid xs={4}>
+        </Box>
+        <Box width='30%' maxWidth={350} minWidth={200}>
           <LineSetting
             modelList={modelList}
             lines={lines}
             currentIndex={currentLineIndex}
             setLines={setLines}
           />
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
       <SimpleBackdrop open={openBackdrop} />
       <DictionaryDialog open={dictOpen} onClose={() => setDictOpen(false)} />
     </>

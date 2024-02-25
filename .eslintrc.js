@@ -14,6 +14,8 @@ module.exports = {
     'import/newline-after-import': 'error',
     'import/no-duplicates': 'error',
     'no-useless-rename': 'error',
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': 'warn',
     'object-shorthand': ['warn', 'always'],
     'react/react-in-jsx-scope': 'off',
     'react/jsx-uses-react': 'off',

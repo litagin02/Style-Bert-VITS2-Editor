@@ -4,6 +4,7 @@ import {
   Box,
   FormControl,
   IconButton,
+  Input,
   InputLabel,
   MenuItem,
   Paper,
@@ -12,9 +13,78 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2/Grid2';
 
 import type { LineState, ModelInfo } from './EditorContainer';
 import { defaultLineState } from './EditorContainer';
+
+interface InputSliderProps {
+  value: number;
+  setValue: (value: number) => void;
+  step: number;
+  min: number;
+  max: number;
+  label: string;
+}
+
+function InputSlider({
+  value,
+  setValue,
+  step,
+  min,
+  max,
+  label,
+}: InputSliderProps) {
+  const handleSliderChange = (event: Event, newValue: number | number[]) => {
+    setValue(newValue as number);
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value === '' ? 0 : Number(event.target.value));
+  };
+
+  const handleBlur = () => {
+    if (value < min) {
+      setValue(min);
+    } else if (value > max) {
+      setValue(max);
+    }
+  };
+
+  return (
+    <Box>
+      <Typography id='input-slider' gutterBottom>
+        {label}
+      </Typography>
+      <Grid container spacing={2} alignItems='center'>
+        <Grid xs>
+          <Slider
+            value={typeof value === 'number' ? value : min}
+            onChange={handleSliderChange}
+            aria-labelledby='input-slider'
+            step={step}
+            min={min}
+            max={max}
+          />
+        </Grid>
+        <Grid>
+          <Input
+            value={value}
+            size='small'
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            inputProps={{
+              step,
+              min,
+              max,
+              type: 'number',
+            }}
+          />
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
 
 interface LineSettingProps {
   modelList: ModelInfo[];
@@ -56,8 +126,15 @@ export default function LineSetting({
       ...defaultLineState,
       model: lines[currentIndex].model,
       modelFile: lines[currentIndex].modelFile,
-      style: lines[currentIndex].style,
       text: lines[currentIndex].text,
+      //もし選択肢にNeutralがあればそれを選択、あるはずだが一応
+      style: modelList
+        .find((speaker) => speaker.name === lines[currentIndex].model)
+        ?.styles.includes('Neutral')
+        ? 'Neutral'
+        : modelList.find(
+            (speaker) => speaker.name === lines[currentIndex].model,
+          )?.styles[0] || '',
     });
   };
 
@@ -123,15 +200,13 @@ export default function LineSetting({
             ))}
         </Select>
       </FormControl>
-      <Typography gutterBottom>
-        スタイルの強さ: {lines[currentIndex].styleWeight}
-      </Typography>
-      <Slider
+      <InputSlider
+        label='スタイルの強さ'
+        value={lines[currentIndex].styleWeight}
+        setValue={(value) => setLineState({ styleWeight: value })}
         step={0.5}
         min={0}
         max={50}
-        value={lines[currentIndex].styleWeight}
-        onChange={(_, value) => setLineState({ styleWeight: value as number })}
       />
       <Typography gutterBottom>話速: {lines[currentIndex].speed}</Typography>
       <Slider
