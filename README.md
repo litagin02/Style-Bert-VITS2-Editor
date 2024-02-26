@@ -1,36 +1,19 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Style-Bert-VITS2 エディター
 
-## Getting Started
+- [Style-Bert-VITS2](https://github.com/litagin02/Style-Bert-VITS2) のエディターのフロントエンドです（Next.js + React + Material UI with TypeScript）。
+- 単独では動かず、Style-Bert-VITS2側の`server_editor.py`と連携して動作します。
 
-First, run the development server:
+フロントエンド初心者なのでプルリクやアドバイスをお待ちしています。
+
+## 開発
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+サーバー側では`server_editor.py`を起動しておいてください。サーバーのポートはデフォルトの8000で、dev環境ではフロントはポート3000から8000を叩き、本番環境では相対パスで自分を叩くようになっています。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 連携
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+mainブランチにタグ`v*`をつけてpushすると、自動的にリリースが生成されて、`npm run build`の結果が`out.zip`としてリリースにアップロードされます。[Style-Bert-VITS2](https://github.com/litagin02/Style-Bert-VITS2)側では、音声合成サーバー起動時に、自動的にリリースを確認して更新されていたらこれをダウンロードして、サーバー側の静的ファイルとして`/`にホストされます。

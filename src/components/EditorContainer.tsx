@@ -339,7 +339,7 @@ export default function EditorContainer() {
   };
 
   const handleSave = () => {
-    const json = JSON.stringify(lines, null, 2);
+    const json = JSON.stringify(lines);
     const blob = new Blob([json], { type: 'application/json' });
     saveAs(blob, 'project.json');
     handleMenuClose();

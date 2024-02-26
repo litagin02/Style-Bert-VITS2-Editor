@@ -395,7 +395,7 @@ export default function DictionaryDialog({
             <TextField
               autoFocus
               required
-              label='単語（名詞）'
+              label='単語（名詞）（自動的に正規化される）'
               fullWidth
               value={surface}
               onChange={(e) =>
