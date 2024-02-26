@@ -421,11 +421,8 @@ export default function EditorContainer() {
         </Toolbar>
       </AppBar>
       <Box display='flex' justifyContent='space-between' gap={2} mt={2}>
-        <Box flexGrow={1}>
-          <Paper
-            sx={{ p: 2, height: height / 2, overflow: 'auto' }}
-            elevation={2}
-          >
+        <Box flexGrow={1} width='100%' overflow='auto'>
+          <Paper sx={{ p: 2, height: height / 2 }} elevation={2}>
             {lines.map((line, index) => (
               <Grid
                 container
