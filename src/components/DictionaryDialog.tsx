@@ -185,10 +185,6 @@ export default function DictionaryDialog({
     const fetchDict = async () => {
       const res = await fetchApi<UserDict>('/user_dict');
       setDict(res);
-      console.log(res);
-      for (const key in res) {
-        console.log(key, res[key].pronunciation, res[key].surface);
-      }
     };
     fetchDict();
   }, []);
@@ -199,17 +195,21 @@ export default function DictionaryDialog({
     setFetched(false);
   };
 
-  const convertToZenkaku = (text: string) => {
-    text = text.replace(/\p{Z}/gu, () => '\u3000'); // 空白を全角スペースに変換
-    return text.replace(/[\u0021-\u007e]/g, (s) => {
-      return String.fromCharCode(s.charCodeAt(0) + 0xfee0); // 半角英数字等を全角英数字に変換
-    });
-  };
-
-  // 読みに入力された文字からg2pを叩いてモーラとアクセント情報を取得
-  const fetchMoraTone = async () => {
-    setWordState({ ...wordState, surface: convertToZenkaku(surface) });
+  // 単語を正規化、読みに入力された文字からg2pを叩いてモーラを取得
+  // 音声合成や学習には正規化された文字列が使われるため、辞書でもそれを登録する必要がある
+  const fetchNormMora = async () => {
     setPronunciationError(false);
+
+    // 単語を正規化。`/normalize`を叩く
+    const fetchedSurface = await fetchApi<string>('/normalize', {
+      method: 'POST',
+      body: JSON.stringify({ text: surface }),
+    }).catch((e) => {
+      console.error(e);
+      openPopup('正規化に失敗しました', 'error');
+      return surface;
+    });
+
     const fetchedMoraTone = await fetchApi<MoraTone[]>('/g2p', {
       method: 'POST',
       body: JSON.stringify({ text: pronunciation + 'が' }),
@@ -229,6 +229,7 @@ export default function DictionaryDialog({
       .join('');
     setWordState({
       ...wordState,
+      surface: fetchedSurface,
       moraToneList: newMoraTone,
       accentIndex: 0,
       pronunciation: newPronunciation,
@@ -318,12 +319,15 @@ export default function DictionaryDialog({
     delete newDict[elem.uuid];
     setDict(newDict);
     setWordState(defaultWordState);
+    setIsNew(true);
   };
 
   const handleClose = () => {
     onClose();
     setWordState(defaultWordState);
     setFetched(false);
+    setPronunciationError(false);
+    setIsNew(true);
   };
 
   return (
@@ -431,7 +435,7 @@ export default function DictionaryDialog({
                   sx={{ mb: 2 }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                      fetchMoraTone();
+                      fetchNormMora();
                     }
                   }}
                 />
@@ -440,7 +444,7 @@ export default function DictionaryDialog({
                 <Button
                   color='primary'
                   variant='outlined'
-                  onClick={fetchMoraTone}
+                  onClick={fetchNormMora}
                   startIcon={<RefreshIcon />}
                   sx={{ mb: 2 }}
                   fullWidth
