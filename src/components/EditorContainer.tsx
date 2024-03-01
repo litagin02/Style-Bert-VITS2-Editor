@@ -318,6 +318,16 @@ export default function EditorContainer() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
       handleSynthesis();
+    } else if (e.key === 'ArrowDown') {
+      if (currentLineIndex < lines.length - 1) {
+        setCurrentLineIndex(currentLineIndex + 1);
+      } else {
+        addLine();
+      }
+    } else if (e.key === 'ArrowUp') {
+      if (currentLineIndex > 0) {
+        setCurrentLineIndex(currentLineIndex - 1);
+      }
     }
   };
 
@@ -325,6 +335,32 @@ export default function EditorContainer() {
     setLines([...lines.slice(0, lineIndex), ...lines.slice(lineIndex + 1)]);
     if (lineIndex <= currentLineIndex && currentLineIndex > 0) {
       setCurrentLineIndex(currentLineIndex - 1);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text');
+    if (text) {
+      const newTexts = text.split(/[\r\n]+/);
+      // 改行で分けて、currentLineIndexの設定のまま新規行を間に挿入
+
+      const beforeLines = lines.slice(0, currentLineIndex);
+
+      const newLines = newTexts.map((newText, index) => {
+        if (index === 0) {
+          return {
+            ...lines[currentLineIndex],
+            text: lines[currentLineIndex].text + newText,
+          };
+        }
+        return { ...lines[currentLineIndex], text: newText };
+      });
+      const afterLines = lines.slice(currentLineIndex + 1);
+
+      const updatedLines = [...beforeLines, ...newLines, ...afterLines];
+      setLines(updatedLines);
+      setCurrentLineIndex(currentLineIndex + newTexts.length - 1);
     }
   };
 
@@ -461,7 +497,12 @@ export default function EditorContainer() {
                     onChange={(e) => handleTextChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     focused={currentLineIndex === index}
-                    autoFocus={true}
+                    onPaste={handlePaste}
+                    inputRef={(input) => {
+                      if (input && currentLineIndex === index) {
+                        input.focus();
+                      }
+                    }}
                   />
                 </Grid>
                 <Grid xs='auto'>
