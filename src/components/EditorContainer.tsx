@@ -35,12 +35,14 @@ export interface ModelInfo {
   name: string;
   files: string[];
   styles: string[];
+  speakers: string[];
 }
 
 export interface LineState {
   text: string;
   model: string;
   modelFile: string;
+  speaker: string;
   style: string;
   moraToneList: MoraTone[];
   accentModified: boolean;
@@ -59,6 +61,7 @@ export const defaultLineState: LineState = {
   model: '',
   modelFile: '',
   style: '', // fetch前はNeutralがないので空文字列にする
+  speaker: '',
   moraToneList: [],
   accentModified: false,
   styleWeight: 5,
@@ -119,12 +122,12 @@ export default function EditorContainer() {
     // 初期のモデル情報取得
     setOpenBackdrop(true);
 
-    let retryCount = 0;
-    const maxRetries = 10;
-    const retryInterval = 1000; // 1秒
     let timeoutId: NodeJS.Timeout;
 
-    const fetchData = () => {
+    const fetchModelInfo = () => {
+      let retryCount = 0;
+      const maxRetries = 10;
+      const retryInterval = 1000; // 1秒
       fetchApi<ModelInfo[]>('/models_info')
         .then((data) => {
           setModelList(data);
@@ -134,6 +137,7 @@ export default function EditorContainer() {
               model: data[0].name || '',
               modelFile: data[0].files[0] || '',
               style: data[0].styles[0] || '',
+              speaker: data[0].speakers[0] || '',
             },
           ]);
           setOpenBackdrop(false);
@@ -145,7 +149,7 @@ export default function EditorContainer() {
             console.log(
               `モデル情報の取得に失敗しました。リトライします。${retryCount}回目...`,
             );
-            timeoutId = setTimeout(fetchData, retryInterval);
+            timeoutId = setTimeout(fetchModelInfo, retryInterval);
           } else {
             console.log(
               `モデル情報の取得に失敗しました。リトライ回数: ${retryCount}`,
@@ -157,7 +161,7 @@ export default function EditorContainer() {
         });
     };
 
-    fetchData();
+    fetchModelInfo();
 
     return () => {
       if (timeoutId) {
@@ -203,6 +207,22 @@ export default function EditorContainer() {
       }
     };
   }, []);
+
+  const handleRefresh = () => {
+    // TODO: 初期読み込み時とだいたい同じ処理なので共通化する
+    handleMenuClose();
+    setOpenBackdrop(true);
+    fetchApi<ModelInfo[]>('/models_info')
+      .then((data) => {
+        setModelList(data);
+        setOpenBackdrop(false);
+      })
+      .catch((e) => {
+        console.error(e);
+        openPopup(`モデル情報の取得に失敗しました。\n${e}`, 'error');
+        setOpenBackdrop(false);
+      });
+  };
 
   const addLine = () => {
     setLines([
@@ -383,7 +403,7 @@ export default function EditorContainer() {
 
   const handleLoad = (event: React.ChangeEvent<HTMLInputElement>) => {
     handleMenuClose();
-    setCurrentLineIndex(0);
+    // FIXME: ファイル選択ダイアログが閉じるまでメニューが閉じない
 
     const file = event.target.files?.[0];
     if (!file) {
@@ -393,6 +413,7 @@ export default function EditorContainer() {
     const reader = new FileReader();
 
     reader.onload = (e: ProgressEvent<FileReader>) => {
+      setCurrentLineIndex(0);
       const content = e.target?.result;
       if (typeof content === 'string') {
         try {
@@ -439,10 +460,12 @@ export default function EditorContainer() {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
+            <MenuItem onClick={handleRefresh}>モデル情報をリロード</MenuItem>
+            <Divider />
             <MenuItem onClick={handleSave}>プロジェクトの保存</MenuItem>
             <MenuItem component='label'>
               プロジェクトの読み込み
-              <input type='file' onChange={handleLoad} hidden />
+              <input type='file' onChange={handleLoad} hidden accept='.json' />
             </MenuItem>
             <Divider />
             <MenuItem

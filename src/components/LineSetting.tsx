@@ -122,6 +122,7 @@ export default function LineSetting({
       model,
       modelFile: selected?.files[0] || '',
       style: selected?.styles[0] || '',
+      speaker: selected?.speakers[0] || '',
     });
   };
 
@@ -133,12 +134,11 @@ export default function LineSetting({
       text: lines[currentIndex].text,
       //もし選択肢にNeutralがあればそれを選択、あるはずだが一応
       style: modelList
-        .find((speaker) => speaker.name === lines[currentIndex].model)
+        .find((model) => model.name === lines[currentIndex].model)
         ?.styles.includes('Neutral')
         ? 'Neutral'
-        : modelList.find(
-            (speaker) => speaker.name === lines[currentIndex].model,
-          )?.styles[0] || '',
+        : modelList.find((model) => model.name === lines[currentIndex].model)
+            ?.styles[0] || '',
     });
   };
 
@@ -185,6 +185,21 @@ export default function LineSetting({
             ?.files.map((file, index) => (
               <MenuItem key={index} value={file}>
                 {file}
+              </MenuItem>
+            ))}
+        </Select>
+      </FormControl>
+      <FormControl fullWidth variant='standard' sx={{ mb: 1, minWidth: 120 }}>
+        <InputLabel>話者</InputLabel>
+        <Select
+          value={lines[currentIndex].speaker}
+          onChange={(e) => setLineState({ speaker: e.target.value as string })}
+        >
+          {modelList
+            .find((model) => model.name === lines[currentIndex].model)
+            ?.speakers.map((model, index) => (
+              <MenuItem key={index} value={model}>
+                {model}
               </MenuItem>
             ))}
         </Select>

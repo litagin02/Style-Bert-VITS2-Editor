@@ -20,14 +20,21 @@ export async function fetchApi<T>(
     throw new Error(error.detail);
   }
 
+  let result: T;
   switch (responseType) {
     case 'json':
-      return (await res.json()) as T;
+      result = await res.json();
+      break;
     case 'blob':
-      return (await res.blob()) as T;
+      result = await res.blob() as unknown as T;
+      break;
     case 'text':
-      return (await res.text()) as T;
+      result = await res.text() as unknown as T;
+      break;
     default:
-      return res.status === 204 ? ({} as T) : ((await res.json()) as T);
+      result = res.status === 204 ? ({} as T) : (await res.json());
   }
+
+  console.log('fetchApi result', result);
+  return result;
 }
