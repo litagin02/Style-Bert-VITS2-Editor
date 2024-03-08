@@ -123,11 +123,11 @@ export default function EditorContainer() {
     setOpenBackdrop(true);
 
     let timeoutId: NodeJS.Timeout;
+    let retryCount = 0;
+    const maxRetries = 10;
+    const retryInterval = 1000; // 1秒
 
     const fetchModelInfo = () => {
-      let retryCount = 0;
-      const maxRetries = 10;
-      const retryInterval = 1000; // 1秒
       fetchApi<ModelInfo[]>('/models_info')
         .then((data) => {
           setModelList(data);
@@ -137,7 +137,7 @@ export default function EditorContainer() {
               model: data[0].name || '',
               modelFile: data[0].files[0] || '',
               style: data[0].styles[0] || '',
-              speaker: data[0].speakers[0] || '',
+              speaker: data[0].speakers?.[0] || '',
             },
           ]);
           setOpenBackdrop(false);

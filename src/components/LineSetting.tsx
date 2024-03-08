@@ -122,7 +122,7 @@ export default function LineSetting({
       model,
       modelFile: selected?.files[0] || '',
       style: selected?.styles[0] || '',
-      speaker: selected?.speakers[0] || '',
+      speaker: selected?.speakers?.[0] || '',
     });
   };
 
@@ -197,7 +197,7 @@ export default function LineSetting({
         >
           {modelList
             .find((model) => model.name === lines[currentIndex].model)
-            ?.speakers.map((model, index) => (
+            ?.speakers?.map((model, index) => (
               <MenuItem key={index} value={model}>
                 {model}
               </MenuItem>
