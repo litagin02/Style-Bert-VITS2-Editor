@@ -131,6 +131,7 @@ export default function LineSetting({
       model: lines[currentIndex].model,
       modelFile: lines[currentIndex].modelFile,
       text: lines[currentIndex].text,
+      speaker: lines[currentIndex].speaker,
       //もし選択肢にNeutralがあればそれを選択、あるはずだが一応
       style: modelList
         .find((model) => model.name === lines[currentIndex].model)
