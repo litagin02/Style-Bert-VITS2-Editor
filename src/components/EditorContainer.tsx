@@ -380,7 +380,6 @@ export default function EditorContainer() {
         });
         const afterLines = lines.slice(currentLineIndex + 1);
 
-      setCurrentLineIndex(currentLineIndex + newTexts.length - 1);
         const updatedLines = [...beforeLines, ...newLines, ...afterLines];
         setLines(updatedLines);
         setCurrentLineIndex(currentLineIndex + newTexts.length - 1);
