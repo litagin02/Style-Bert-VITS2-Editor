@@ -359,28 +359,32 @@ export default function EditorContainer() {
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    e.preventDefault();
     const text = e.clipboardData.getData('text');
     if (text) {
       const newTexts = text.split(/[\r\n]+/);
-      // 改行で分けて、currentLineIndexの設定のまま新規行を間に挿入
+      // 複数行のテキストがペーストされた場合は、改行で分けて新規行を挿入
+      // 単一行の場合はそのままペースト（選択されているテキストを置き換えて挿入する）
+      if (newTexts.length > 1) {
+        e.preventDefault();
+        // 改行で分けて、currentLineIndexの設定のまま新規行を間に挿入
+        const beforeLines = lines.slice(0, currentLineIndex);
 
-      const beforeLines = lines.slice(0, currentLineIndex);
+        const newLines = newTexts.map((newText, index) => {
+          if (index === 0) {
+            return {
+              ...lines[currentLineIndex],
+              text: lines[currentLineIndex].text + newText,
+            };
+          }
+          return { ...lines[currentLineIndex], text: newText };
+        });
+        const afterLines = lines.slice(currentLineIndex + 1);
 
-      const newLines = newTexts.map((newText, index) => {
-        if (index === 0) {
-          return {
-            ...lines[currentLineIndex],
-            text: lines[currentLineIndex].text + newText,
-          };
-        }
-        return { ...lines[currentLineIndex], text: newText };
-      });
-      const afterLines = lines.slice(currentLineIndex + 1);
-
-      const updatedLines = [...beforeLines, ...newLines, ...afterLines];
-      setLines(updatedLines);
       setCurrentLineIndex(currentLineIndex + newTexts.length - 1);
+        const updatedLines = [...beforeLines, ...newLines, ...afterLines];
+        setLines(updatedLines);
+        setCurrentLineIndex(currentLineIndex + newTexts.length - 1);
+      }
     }
   };
 
