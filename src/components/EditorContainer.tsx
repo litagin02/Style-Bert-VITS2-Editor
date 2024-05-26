@@ -1,5 +1,5 @@
 // TODO: コンポーネントを分割してリファクタリングする
-import AddIcon from '@mui/icons-material/Add';
+import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -229,18 +229,21 @@ export default function EditorContainer() {
   };
 
   const addLine = () => {
-    setLines([
-      ...lines,
-      {
-        ...lines[lines.length - 1],
-        text: '',
-        moraToneList: [],
-        accentModified: false,
-      },
-    ]);
-    setCurrentLineIndex(lines.length);
-  };
+  const addLineAt = (index: number) => {
+      const newLine = {
+          ...lines[index],
+          text: '',
+          moraToneList: [],
+          accentModified: false,
+      };
 
+      const newLines = [...lines];
+      newLines.splice(index + 1, 0, newLine);
+
+      setLines(newLines);
+      setCurrentLineIndex(index + 1);
+  };
+  
   const setLineState = (newState: Partial<LineState>) => {
     const newLines = lines.map((line, index) => {
       if (index === currentLineIndex) {
@@ -346,7 +349,7 @@ export default function EditorContainer() {
       if (currentLineIndex < lines.length - 1) {
         setCurrentLineIndex(currentLineIndex + 1);
       } else {
-        addLine();
+        addLineAt(currentLineIndex);
       }
     } else if (e.key === 'ArrowUp') {
       if (currentLineIndex > 0) {
@@ -508,6 +511,12 @@ export default function EditorContainer() {
                   '&:hover .delete-button': {
                     display: 'block',
                   },
+                  '& .add-line-button': {
+                    display: 'none',
+                  },
+                  '&:hover .add-line-button': {
+                    display: 'block',
+                  },
                 }}
               >
                 <Grid xs='auto'>
@@ -542,20 +551,22 @@ export default function EditorContainer() {
                     className='delete-button'
                     disabled={lines.length === 1}
                     onClick={() => handleDelete(index)}
+                    title='この行を削除する'
                   >
                     <DeleteIcon />
                   </IconButton>
                 </Grid>
+                <Grid xs='auto'>
+                  <IconButton
+                      className='add-line-button'
+                      onClick={() => addLineAt(index)}
+                      title='行を追加する'
+                  >
+                    <AddCircleRoundedIcon />
+                  </IconButton>
+                </Grid>
               </Grid>
             ))}
-            <Button
-              variant='outlined'
-              startIcon={<AddIcon />}
-              onClick={addLine}
-              sx={{ mt: 2 }}
-            >
-              テキスト追加
-            </Button>
           </Paper>
           <AccentEditor
             moraToneList={lines[currentLineIndex].moraToneList}
