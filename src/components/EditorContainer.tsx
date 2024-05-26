@@ -118,6 +118,10 @@ export default function EditorContainer() {
 
   const { height } = useWindowSize();
 
+  const [composing, setComposition] = useState(false);
+  const startComposition = () => setComposition(true);
+  const endComposition = () => setComposition(false);
+
   useEffect(() => {
     // 初期のモデル情報取得
     setOpenBackdrop(true);
@@ -336,7 +340,7 @@ export default function EditorContainer() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !composing) {
       handleSynthesis();
     } else if (e.key === 'ArrowDown') {
       if (currentLineIndex < lines.length - 1) {
@@ -522,6 +526,8 @@ export default function EditorContainer() {
                     onFocus={() => setCurrentLineIndex(index)}
                     onChange={(e) => handleTextChange(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onCompositionStart={startComposition}
+                    onCompositionEnd={endComposition}
                     focused={currentLineIndex === index}
                     onPaste={handlePaste}
                     inputRef={(input) => {
