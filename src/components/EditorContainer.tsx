@@ -228,7 +228,6 @@ export default function EditorContainer() {
       });
   };
 
-  const addLine = () => {
   const addLineAt = (index: number) => {
       const newLine = {
           ...lines[index],
