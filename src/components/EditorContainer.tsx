@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import { saveAs } from 'file-saver';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import AccentEditor from '@/components/AccentEditor';
 import { usePopup } from '@/contexts/PopupProvider';
@@ -30,6 +30,7 @@ import type { MoraTone } from './AccentEditor';
 import DictionaryDialog from './DictionaryDialog';
 import LineSetting from './LineSetting';
 import SimpleBackdrop from './SimpleBackdrop';
+import TermOfUseDialog from './TermOfUse';
 
 export interface ModelInfo {
   name: string;
@@ -113,6 +114,7 @@ export default function EditorContainer() {
   const [openBackdrop, setOpenBackdrop] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dictOpen, setDictOpen] = useState(false);
+  const [termOfUseOpen, setTermOfUseOpen] = useState(true);
 
   const [version, setVersion] = useState('');
 
@@ -121,6 +123,7 @@ export default function EditorContainer() {
   const [composing, setComposition] = useState(false);
   const startComposition = () => setComposition(true);
   const endComposition = () => setComposition(false);
+  const refs = useRef<HTMLTextAreaElement[]>([]);
 
   useEffect(() => {
     // 初期のモデル情報取得
@@ -212,6 +215,14 @@ export default function EditorContainer() {
     };
   }, []);
 
+  useEffect(() => {
+    console.log('currentLineIndex:', currentLineIndex);
+    // 現在の行にフォーカスを設定
+    if (refs.current[currentLineIndex]) {
+      refs.current[currentLineIndex].focus();
+    }
+  }, [currentLineIndex]); // currentLineIndex が変更された時に実行
+
   const handleRefresh = () => {
     // TODO: 初期読み込み時とだいたい同じ処理なので共通化する
     handleMenuClose();
@@ -228,22 +239,21 @@ export default function EditorContainer() {
       });
   };
 
-  const addLine = () => {
   const addLineAt = (index: number) => {
-      const newLine = {
-          ...lines[index],
-          text: '',
-          moraToneList: [],
-          accentModified: false,
-      };
+    const newLine = {
+      ...lines[index],
+      text: '',
+      moraToneList: [],
+      accentModified: false,
+    };
 
-      const newLines = [...lines];
-      newLines.splice(index + 1, 0, newLine);
+    const newLines = [...lines];
+    newLines.splice(index + 1, 0, newLine);
 
-      setLines(newLines);
-      setCurrentLineIndex(index + 1);
+    setLines(newLines);
+    setCurrentLineIndex(index + 1);
   };
-  
+
   const setLineState = (newState: Partial<LineState>) => {
     const newLines = lines.map((line, index) => {
       if (index === currentLineIndex) {
@@ -539,11 +549,12 @@ export default function EditorContainer() {
                     onCompositionEnd={endComposition}
                     focused={currentLineIndex === index}
                     onPaste={handlePaste}
-                    inputRef={(input) => {
-                      if (input && currentLineIndex === index) {
-                        input.focus();
-                      }
-                    }}
+                    // inputRef={(input) => {
+                    //   if (input && currentLineIndex === index) {
+                    //     input.focus();
+                    //   }
+                    // }}
+                    inputRef={(el) => (refs.current[index] = el)} // 各行の ref を保存
                   />
                 </Grid>
                 <Grid xs='auto'>
@@ -558,9 +569,9 @@ export default function EditorContainer() {
                 </Grid>
                 <Grid xs='auto'>
                   <IconButton
-                      className='add-line-button'
-                      onClick={() => addLineAt(index)}
-                      title='行を追加する'
+                    className='add-line-button'
+                    onClick={() => addLineAt(index)}
+                    title='行を追加する'
                   >
                     <AddCircleRoundedIcon />
                   </IconButton>
@@ -639,6 +650,10 @@ export default function EditorContainer() {
       </Box>
       <SimpleBackdrop open={openBackdrop} />
       <DictionaryDialog open={dictOpen} onClose={() => setDictOpen(false)} />
+      <TermOfUseDialog
+        open={termOfUseOpen}
+        onClose={() => setTermOfUseOpen(false)}
+      />
     </>
   );
 }

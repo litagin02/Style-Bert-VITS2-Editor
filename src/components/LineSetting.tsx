@@ -13,6 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
+import { useState } from 'react';
 
 import type { LineState, ModelInfo } from './EditorContainer';
 import { defaultLineState } from './EditorContainer';
@@ -102,6 +103,8 @@ export default function LineSetting({
   setLines,
   currentIndex,
 }: LineSettingProps) {
+  const [styleWeightUB, setStyleWeightUB] = useState(10);
+
   const setLineState = (newState: Partial<LineState>) => {
     const newLines = lines.map((line, index) => {
       if (index === currentIndex) {
@@ -220,12 +223,20 @@ export default function LineSetting({
         </Select>
       </FormControl>
       <InputSlider
-        label='スタイルの強さ'
+        label='スタイルの強さ上限設定'
+        value={styleWeightUB}
+        setValue={(value) => setStyleWeightUB(value)}
+        step={0.1}
+        min={1}
+        max={20}
+      />
+      <InputSlider
+        label='スタイルの強さ（崩壊したら下げて）'
         value={lines[currentIndex].styleWeight}
         setValue={(value) => setLineState({ styleWeight: value })}
-        step={0.5}
+        step={0.1}
         min={0}
-        max={50}
+        max={styleWeightUB}
       />
       <InputSlider
         label='話速'
