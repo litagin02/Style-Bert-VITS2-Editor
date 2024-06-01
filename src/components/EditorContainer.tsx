@@ -65,7 +65,7 @@ export const defaultLineState: LineState = {
   speaker: '',
   moraToneList: [],
   accentModified: false,
-  styleWeight: 5,
+  styleWeight: 1,
   speed: 1,
   sdpRatio: 0.2,
   noise: 0.6,
@@ -495,6 +495,15 @@ export default function EditorContainer() {
               }}
             >
               ユーザー辞書の編集
+            </MenuItem>
+            <Divider />
+            <MenuItem
+              onClick={() => {
+                setTermOfUseOpen(true);
+                handleMenuClose();
+              }}
+            >
+              利用規約
             </MenuItem>
           </Menu>
         </Toolbar>
