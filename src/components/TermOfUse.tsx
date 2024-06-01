@@ -26,7 +26,7 @@ export default function TermOfUseDialog({
         <Typography>
           Style-Bert-VITS2を利用する際は、
           <Link
-            href='https://github.com/litagin02/Style-Bert-VITS2/blob/master/docs/TERM_OF_USE.md'
+            href='https://github.com/litagin02/Style-Bert-VITS2/blob/master/docs/TERMS_OF_USE.md'
             target='_blank'
             rel='noopener noreferrer'
           >
@@ -102,9 +102,9 @@ export default function TermOfUseDialog({
           あみたろ、あみたろの声素材工房 (https://amitaro.net/)」
         </Typography>
         <Typography>
-          その他、完全な規約は
+          完全なモデルの利用規約は
           <Link
-            href='https://github.com/litagin02/Style-Bert-VITS2/blob/master/docs/TERM_OF_USE.md'
+            href='https://github.com/litagin02/Style-Bert-VITS2/blob/master/docs/TERMS_OF_USE.md'
             target='_blank'
             rel='noopener noreferrer'
           >
