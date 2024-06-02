@@ -72,7 +72,8 @@ export default function TermOfUseDialog({
           >
             あみたろの声素材工房
           </Link>
-          のコーパス音声・ライブ配信音声から許可を得て学習されました。利用の際には、
+          のコーパス音声・ライブ配信音声から許可を得て学習されました（Ver
+          2.5.0で追加されたモデルです、アップデートした方は`Initialize.bat`ファイルをダブルクリックするとモデルのダウンロードができます）。利用の際には、
           <Link
             href='https://amitaro.net/voice/voice_rule/'
             target='_blank'
