@@ -21,7 +21,7 @@ export default function TermOfUseDialog({
 }: TermOfUseDialogProps) {
   return (
     <Dialog open={open} fullWidth maxWidth='md'>
-      <DialogTitle>利用規約</DialogTitle>
+      <DialogTitle>お願いとモデルの利用規約</DialogTitle>
       <DialogContent>
         <Typography>
           Style-Bert-VITS2を利用する際は、
@@ -30,9 +30,9 @@ export default function TermOfUseDialog({
             target='_blank'
             rel='noopener noreferrer'
           >
-            Style-Bert-VITS2の利用規約
+            Style-Bert-VITS2の開発陣からのお願いとデフォルトモデルの利用規約
           </Link>
-          を遵守してください。特に、利用するモデルの利用規約がある場合はそれに従わなければなりません。
+          を読んで、使用するモデルの利用規約を遵守してください。
           初期からあるデフォルトモデルの利用規約の抜粋は以下の通りです（完全な利用規約は上記リンクにあります）。
         </Typography>
         <Box sx={{ fontWeight: 'bold' }}>JVNV</Box>
