@@ -120,9 +120,9 @@ export default function EditorContainer() {
 
   const { height } = useWindowSize();
 
-  const [composing, setComposition] = useState(false);
-  const startComposition = () => setComposition(true);
-  const endComposition = () => setComposition(false);
+  const composing = useRef<boolean>(false);
+  const startComposition = () => (composing.current = true);
+  const endComposition = () => (composing.current = false);
   const refs = useRef<HTMLTextAreaElement[]>([]);
 
   useEffect(() => {
@@ -353,7 +353,7 @@ export default function EditorContainer() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' && !composing) {
+    if (e.key === 'Enter' && !composing.current) {
       handleSynthesis();
     } else if (e.key === 'ArrowDown') {
       if (currentLineIndex < lines.length - 1) {
